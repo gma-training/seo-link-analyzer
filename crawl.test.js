@@ -1,5 +1,5 @@
 const { describe, test, expect } = require("@jest/globals");
-const { normalizeURL } = require("./crawl");
+const { getURLsFromHTML, normalizeURL } = require("./crawl");
 
 const normalized = "wagslane.dev/path";
 
@@ -18,5 +18,40 @@ describe("normalizeURL", () => {
 
   test("removes a trailing slash", () => {
     expect(normalizeURL("https://wagslane.dev/path/")).toBe(normalized);
+  });
+});
+
+describe("getURLsFromHTML", () => {
+  test("link tag URLs are returned", () => {
+    const url1 = "https://blog.boot.dev/";
+    const url2 = "https://blog.boot.dev/path/to/page";
+    const html = `
+<html>
+  <body>
+    <a href="${url1}"><span>Go to Boot.dev</span></a>
+    <a href="${url2}"><span>Go to a page</span></a>
+  </body>
+</html>`.trim();
+
+    const urls = getURLsFromHTML(html, "https://blog.boot.dev/");
+
+    expect(urls).toContain(url1);
+    expect(urls).toContain(url2);
+  });
+
+  test("relative links are converted to absolute", () => {
+    const baseUrl = "https://blog.boot.dev/";
+    const path = "/path/to/page";
+    const html = `
+<html>
+  <body>
+    <a href="${path}"><span>Go to Boot.dev</span></a>
+  </body>
+</html>`.trim();
+
+    const urls = getURLsFromHTML(html, baseUrl);
+
+    const absoluteUrl = new URL(path, baseUrl).href;
+    expect(urls).toContain(absoluteUrl);
   });
 });
