@@ -1,5 +1,5 @@
 const { describe, test, expect } = require("@jest/globals");
-const { getURLsFromHTML, normalizeURL } = require("./crawl");
+const { crawlPage, getURLsFromHTML, normalizeURL } = require("./crawl");
 
 const normalized = "wagslane.dev/path";
 
@@ -53,5 +53,16 @@ describe("getURLsFromHTML", () => {
 
     const absoluteUrl = new URL(path, baseUrl).href;
     expect(urls).toContain(absoluteUrl);
+  });
+});
+
+describe("crawlPage", () => {
+  test("retrieves page and returns HTML body", async () => {
+    const pageContent = "<html><body>Hello</body></html>";
+    global.fetch = jest.fn(() => {
+      return Promise.resolve({ text: () => Promise.resolve(pageContent) });
+    });
+
+    expect(await crawlPage("https://blog.boot.dev/")).toBe(pageContent);
   });
 });

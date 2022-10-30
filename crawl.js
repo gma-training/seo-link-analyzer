@@ -1,5 +1,10 @@
 const { JSDOM } = require("jsdom");
 
+async function crawlPage(url) {
+  const response = await fetch(url);
+  return await response.text();
+}
+
 function withoutTrailingSlash(url) {
   return url.endsWith("/") ? url.slice(0, -1) : url;
 }
@@ -20,6 +25,7 @@ function getURLsFromHTML(htmlBody, baseURL) {
 }
 
 module.exports = {
+  crawlPage,
   normalizeURL,
   getURLsFromHTML,
 };
