@@ -1,0 +1,16 @@
+{
+  "name": "seo-link-analyzer",
+  "version": "1.0.0",
+  "description": "Check a site for link building opportunities",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "seo",
+    "link",
+    "building"
+  ],
+  "author": "Graham Ashton",
+  "license": "ISC"
+}
