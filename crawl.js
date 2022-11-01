@@ -1,5 +1,9 @@
 const { JSDOM } = require("jsdom");
 
+function linkingToSameDomain(url1, url2) {
+  return new URL(url1).host === new URL(url2).host;
+}
+
 function countLink(pages, url) {
   const key = normalizeURL(url);
   pages.set(key, (pages.get(key) || 0) + 1);
@@ -24,7 +28,13 @@ async function crawlPage(
   } else {
     const html = await response.text();
     for (const url of getURLsFromHTML(html, baseUrl)) {
-      countLink(pages, url);
+      if (linkingToSameDomain(baseUrl, url)) {
+        const seenPageBefore = pages.has(normalizeURL(url));
+        countLink(pages, url);
+        if (!seenPageBefore) {
+          pages = await crawlPage(baseUrl, url, { pages, onError });
+        }
+      }
     }
   }
   return pages;

@@ -56,6 +56,15 @@ describe("getURLsFromHTML", () => {
   });
 });
 
+function htmlWithNoLinks() {
+  return `
+<html>
+  <body>
+    <p>No links on this page</p>
+  </body>
+</html>`.trim();
+}
+
 function htmlLinkingTo(...urls) {
   return `
 <html>
@@ -79,12 +88,55 @@ describe("crawlPage", () => {
   test("retrieves page and returns map of link counts", async () => {
     const baseUrl = "https://blog.boot.dev";
     const url = baseUrl + "/path";
-    fetchReturns({ [url]: htmlLinkingTo(url) });
+    fetchReturns({ [baseUrl]: htmlLinkingTo(url), [url]: htmlWithNoLinks() });
 
-    const pages = await crawlPage(baseUrl, url);
+    const pages = await crawlPage(baseUrl, baseUrl);
 
     expect(pages.size).toBe(1);
     expect(pages.get(normalizeURL(url))).toEqual(1);
+  });
+
+  test("doesn't retrieve links to other domains", async () => {
+    const baseUrl = "https://blog.boot.dev/";
+    fetchReturns({ [baseUrl]: htmlLinkingTo("https://other.domain/") });
+
+    const pages = await crawlPage(baseUrl, baseUrl);
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(pages.size).toBe(0);
+  });
+
+  test("counts links on linked pages on same domain", async () => {
+    const baseUrl = "https://blog.boot.dev";
+    const page1 = "/path1";
+    const page2 = "/path2";
+    fetchReturns({
+      [baseUrl]: htmlLinkingTo(page1),
+      [baseUrl + page1]: htmlLinkingTo(page2),
+      [baseUrl + page2]: htmlWithNoLinks(),
+    });
+
+    const pages = await crawlPage(baseUrl, baseUrl);
+
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+    expect(pages.has(normalizeURL(baseUrl + page2))).toBe(true);
+  });
+
+  test("only visits each page once", async () => {
+    const baseUrl = "https://blog.boot.dev";
+    const page1 = "/path1";
+    const page2 = "/path2";
+    fetchReturns({
+      [baseUrl]: htmlLinkingTo(page1),
+      [baseUrl + page1]: htmlLinkingTo(page2),
+      [baseUrl + page2]: htmlLinkingTo(page1),
+    });
+
+    const pages = await crawlPage(baseUrl, baseUrl);
+
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+    expect(pages.get(normalizeURL(baseUrl + page1))).toBe(2);
+    expect(pages.get(normalizeURL(baseUrl + page2))).toBe(1);
   });
 
   test("calls onError when page not found", async () => {
