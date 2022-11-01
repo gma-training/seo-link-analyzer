@@ -61,6 +61,7 @@ describe("crawlPage", () => {
     const pageContent = "<html><body>Hello</body></html>";
     global.fetch = jest.fn(() => {
       return Promise.resolve({
+        headers: { get: () => `text/html; charset=utf-8` },
         status: 200,
         text: () => Promise.resolve(pageContent),
       });
@@ -79,5 +80,22 @@ describe("crawlPage", () => {
     await crawlPage(url, { onError });
 
     expect(onError).toHaveBeenCalledWith(`${url}: ${status} ${statusText}`);
+  });
+
+  test("calls onError when content isn't HTML", async () => {
+    const mimeType = "application/pdf; charset=utf-8";
+    global.fetch = jest.fn(() => {
+      return Promise.resolve({
+        headers: { get: () => mimeType },
+        status: 200,
+        text: () => Promise.resolve("PDF data"),
+      });
+    });
+    const url = "https://blog.boot.dev/path";
+    const onError = jest.fn(() => {});
+
+    await crawlPage(url, { onError });
+
+    expect(onError).toHaveBeenCalledWith(`${url}: ${mimeType}`);
   });
 });
