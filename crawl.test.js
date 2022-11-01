@@ -60,9 +60,24 @@ describe("crawlPage", () => {
   test("retrieves page and returns HTML body", async () => {
     const pageContent = "<html><body>Hello</body></html>";
     global.fetch = jest.fn(() => {
-      return Promise.resolve({ text: () => Promise.resolve(pageContent) });
+      return Promise.resolve({
+        status: 200,
+        text: () => Promise.resolve(pageContent),
+      });
     });
 
-    expect(await crawlPage("https://blog.boot.dev/")).toBe(pageContent);
+    expect(await crawlPage("https://blog.boot.dev/", {})).toBe(pageContent);
+  });
+
+  test("calls onError when page not found", async () => {
+    const status = 404;
+    const statusText = "Not Found";
+    global.fetch = jest.fn(() => Promise.resolve({ status, statusText }));
+    const url = "https://blog.boot.dev/";
+    const onError = jest.fn(() => {});
+
+    await crawlPage(url, { onError });
+
+    expect(onError).toHaveBeenCalledWith(`${url}: ${status} ${statusText}`);
   });
 });

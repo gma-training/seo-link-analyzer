@@ -1,8 +1,12 @@
 const { JSDOM } = require("jsdom");
 
-async function crawlPage(url) {
+async function crawlPage(url, { onError = () => {} } = {}) {
   const response = await fetch(url);
-  return await response.text();
+  if (response.status !== 200) {
+    onError(`${url}: ${response.status} ${response.statusText}`);
+  } else {
+    return await response.text();
+  }
 }
 
 function withoutTrailingSlash(url) {
