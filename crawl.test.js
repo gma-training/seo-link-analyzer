@@ -98,4 +98,15 @@ describe("crawlPage", () => {
 
     expect(onError).toHaveBeenCalledWith(`${url}: ${mimeType}`);
   });
+
+  test("catches network errors", async () => {
+    const message = "Some network error";
+    global.fetch = jest.fn(() => Promise.reject(Error(message)));
+    const url = "https://nosuchsite";
+    const onError = jest.fn(() => {});
+
+    await crawlPage(url, { onError });
+
+    expect(onError).toHaveBeenCalledWith(url, message);
+  });
 });

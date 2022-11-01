@@ -1,7 +1,13 @@
 const { JSDOM } = require("jsdom");
 
 async function crawlPage(url, { onError = () => {} } = {}) {
-  const response = await fetch(url);
+  let response;
+  try {
+    response = await fetch(url);
+  } catch (e) {
+    onError(url, e.message);
+    return;
+  }
   if (response.status !== 200) {
     onError(`${url}: ${response.status} ${response.statusText}`);
   } else if (!response.headers.get("Content-Type").includes("text/html")) {
