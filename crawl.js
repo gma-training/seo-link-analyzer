@@ -1,20 +1,33 @@
 const { JSDOM } = require("jsdom");
 
-async function crawlPage(baseUrl, currentUrl, { onError = () => {} } = {}) {
+function countLink(pages, url) {
+  const key = normalizeURL(url);
+  pages.set(key, (pages.get(key) || 0) + 1);
+}
+
+async function crawlPage(
+  baseUrl,
+  currentUrl,
+  { pages = new Map(), onError = () => {} } = {}
+) {
   let response;
   try {
     response = await fetch(currentUrl);
   } catch (e) {
     onError(`${currentUrl}: ${e.message}`);
-    return;
+    return pages;
   }
   if (response.status !== 200) {
     onError(`${currentUrl}: ${response.status} ${response.statusText}`);
   } else if (!response.headers.get("Content-Type").includes("text/html")) {
     onError(`${currentUrl}: ${response.headers.get("Content-Type")}`);
   } else {
-    return await response.text();
+    const html = await response.text();
+    for (const url of getURLsFromHTML(html, baseUrl)) {
+      countLink(pages, url);
+    }
   }
+  return pages;
 }
 
 function withoutTrailingSlash(url) {

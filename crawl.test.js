@@ -56,19 +56,35 @@ describe("getURLsFromHTML", () => {
   });
 });
 
-describe("crawlPage", () => {
-  test("retrieves page and returns HTML body", async () => {
-    const pageContent = "<html><body>Hello</body></html>";
-    global.fetch = jest.fn(() => {
-      return Promise.resolve({
-        headers: { get: () => `text/html; charset=utf-8` },
-        status: 200,
-        text: () => Promise.resolve(pageContent),
-      });
-    });
-    const url = "https://blog.boot.dev/";
+function htmlLinkingTo(...urls) {
+  return `
+<html>
+  <body>
+    ${urls.map((url) => `<a href="${url}">Link</a>`)}
+  </body>
+</html>`.trim();
+}
 
-    expect(await crawlPage(url, url)).toBe(pageContent);
+function fetchReturns(responses) {
+  global.fetch = jest.fn((url) => {
+    return Promise.resolve({
+      headers: { get: () => `text/html; charset=utf-8` },
+      status: 200,
+      text: () => Promise.resolve(responses[url]),
+    });
+  });
+}
+
+describe("crawlPage", () => {
+  test("retrieves page and returns map of link counts", async () => {
+    const baseUrl = "https://blog.boot.dev";
+    const url = baseUrl + "/path";
+    fetchReturns({ [url]: htmlLinkingTo(url) });
+
+    const pages = await crawlPage(baseUrl, url);
+
+    expect(pages.size).toBe(1);
+    expect(pages.get(normalizeURL(url))).toEqual(1);
   });
 
   test("calls onError when page not found", async () => {
@@ -81,6 +97,16 @@ describe("crawlPage", () => {
     await crawlPage(url, url, { onError });
 
     expect(onError).toHaveBeenCalledWith(`${url}: ${status} ${statusText}`);
+  });
+
+  test("returns map of link counts on error", async () => {
+    const status = 404;
+    const statusText = "Not Found";
+    global.fetch = jest.fn(() => Promise.resolve({ status, statusText }));
+
+    const pages = await crawlPage("https://boot.dev", "https://boot.dev");
+
+    expect(pages.size).toBe(0);
   });
 
   test("calls onError when content isn't HTML", async () => {
