@@ -1,17 +1,17 @@
 const { JSDOM } = require("jsdom");
 
-async function crawlPage(url, { onError = () => {} } = {}) {
+async function crawlPage(baseUrl, currentUrl, { onError = () => {} } = {}) {
   let response;
   try {
-    response = await fetch(url);
+    response = await fetch(currentUrl);
   } catch (e) {
-    onError(url, e.message);
+    onError(`${currentUrl}: ${e.message}`);
     return;
   }
   if (response.status !== 200) {
-    onError(`${url}: ${response.status} ${response.statusText}`);
+    onError(`${currentUrl}: ${response.status} ${response.statusText}`);
   } else if (!response.headers.get("Content-Type").includes("text/html")) {
-    onError(`${url}: ${response.headers.get("Content-Type")}`);
+    onError(`${currentUrl}: ${response.headers.get("Content-Type")}`);
   } else {
     return await response.text();
   }

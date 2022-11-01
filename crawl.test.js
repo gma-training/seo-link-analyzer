@@ -66,8 +66,9 @@ describe("crawlPage", () => {
         text: () => Promise.resolve(pageContent),
       });
     });
+    const url = "https://blog.boot.dev/";
 
-    expect(await crawlPage("https://blog.boot.dev/", {})).toBe(pageContent);
+    expect(await crawlPage(url, url)).toBe(pageContent);
   });
 
   test("calls onError when page not found", async () => {
@@ -77,7 +78,7 @@ describe("crawlPage", () => {
     const url = "https://blog.boot.dev/";
     const onError = jest.fn(() => {});
 
-    await crawlPage(url, { onError });
+    await crawlPage(url, url, { onError });
 
     expect(onError).toHaveBeenCalledWith(`${url}: ${status} ${statusText}`);
   });
@@ -91,12 +92,13 @@ describe("crawlPage", () => {
         text: () => Promise.resolve("PDF data"),
       });
     });
-    const url = "https://blog.boot.dev/path";
+    const baseUrl = "https://blog.boot.dev/";
+    const pdfUrl = "https://blog.boot.dev/path";
     const onError = jest.fn(() => {});
 
-    await crawlPage(url, { onError });
+    await crawlPage(baseUrl, pdfUrl, { onError });
 
-    expect(onError).toHaveBeenCalledWith(`${url}: ${mimeType}`);
+    expect(onError).toHaveBeenCalledWith(`${pdfUrl}: ${mimeType}`);
   });
 
   test("catches network errors", async () => {
@@ -105,8 +107,8 @@ describe("crawlPage", () => {
     const url = "https://nosuchsite";
     const onError = jest.fn(() => {});
 
-    await crawlPage(url, { onError });
+    await crawlPage(url, url, { onError });
 
-    expect(onError).toHaveBeenCalledWith(url, message);
+    expect(onError).toHaveBeenCalledWith(`${url}: ${message}`);
   });
 });
