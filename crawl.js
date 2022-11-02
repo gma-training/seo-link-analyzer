@@ -9,31 +9,34 @@ function countLink(pages, url) {
   pages.set(key, (pages.get(key) || 0) + 1);
 }
 
+async function fetchPage(url) {
+  const response = await fetch(url);
+  if (response.status !== 200) {
+    throw Error(`${response.status} ${response.statusText}`);
+  } else if (!response.headers.get("Content-Type").includes("text/html")) {
+    throw Error(`${response.headers.get("Content-Type")}`);
+  }
+  return await response.text();
+}
+
 async function crawlPage(
   baseUrl,
   currentUrl,
   { pages = new Map(), onError = () => {} } = {}
 ) {
-  let response;
+  let html;
   try {
-    response = await fetch(currentUrl);
+    html = await fetchPage(currentUrl);
   } catch (e) {
     onError(`${currentUrl}: ${e.message}`);
     return pages;
   }
-  if (response.status !== 200) {
-    onError(`${currentUrl}: ${response.status} ${response.statusText}`);
-  } else if (!response.headers.get("Content-Type").includes("text/html")) {
-    onError(`${currentUrl}: ${response.headers.get("Content-Type")}`);
-  } else {
-    const html = await response.text();
-    for (const url of getURLsFromHTML(html, baseUrl)) {
-      if (linkingToSameDomain(baseUrl, url)) {
-        const seenPageBefore = pages.has(normalizeURL(url));
-        countLink(pages, url);
-        if (!seenPageBefore) {
-          pages = await crawlPage(baseUrl, url, { pages, onError });
-        }
+  for (const url of getURLsFromHTML(html, baseUrl)) {
+    if (linkingToSameDomain(baseUrl, url)) {
+      const seenPageBefore = pages.has(normalizeURL(url));
+      countLink(pages, url);
+      if (!seenPageBefore) {
+        pages = await crawlPage(baseUrl, url, { pages, onError });
       }
     }
   }
