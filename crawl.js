@@ -4,9 +4,8 @@ function linkingToSameDomain(url1, url2) {
   return new URL(url1).host === new URL(url2).host;
 }
 
-function countLink(pages, url) {
-  const key = normalizeURL(url);
-  pages.set(key, (pages.get(key) || 0) + 1);
+function incrementCount(pages, url) {
+  return (pages.get(normalizeURL(url)) || 0) + 1;
 }
 
 async function fetchPage(url) {
@@ -34,7 +33,7 @@ async function crawlPage(
   for (const url of getURLsFromHTML(html, baseUrl)) {
     if (linkingToSameDomain(baseUrl, url)) {
       const seenPageBefore = pages.has(normalizeURL(url));
-      countLink(pages, url);
+      pages.set(normalizeURL(url), incrementCount(pages, url));
       if (!seenPageBefore) {
         pages = await crawlPage(baseUrl, url, { pages, onError });
       }
