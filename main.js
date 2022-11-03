@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const path = require("node:path");
 
 const { crawlPage } = require("./crawl");
