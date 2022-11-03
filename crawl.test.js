@@ -1,4 +1,4 @@
-const { describe, test, expect } = require("@jest/globals");
+import { describe, test, expect, vi } from "vitest";
 const { crawlPage, getURLsFromHTML, normalizeURL } = require("./crawl");
 
 const normalized = "wagslane.dev/path";
@@ -75,7 +75,7 @@ function htmlLinkingTo(...urls) {
 }
 
 function fetchReturns(responses) {
-  global.fetch = jest.fn((url) => {
+  global.fetch = vi.fn((url) => {
     return Promise.resolve({
       headers: { get: () => `text/html; charset=utf-8` },
       status: 200,
@@ -142,9 +142,9 @@ describe("crawlPage", () => {
   test("calls onError when page not found", async () => {
     const status = 404;
     const statusText = "Not Found";
-    global.fetch = jest.fn(() => Promise.resolve({ status, statusText }));
+    global.fetch = vi.fn(() => Promise.resolve({ status, statusText }));
     const url = "https://blog.boot.dev/";
-    const onError = jest.fn(() => {});
+    const onError = vi.fn(() => {});
 
     await crawlPage(url, url, { onError });
 
@@ -154,7 +154,7 @@ describe("crawlPage", () => {
   test("returns map of link counts on error", async () => {
     const status = 404;
     const statusText = "Not Found";
-    global.fetch = jest.fn(() => Promise.resolve({ status, statusText }));
+    global.fetch = vi.fn(() => Promise.resolve({ status, statusText }));
 
     const pages = await crawlPage("https://boot.dev", "https://boot.dev");
 
@@ -163,7 +163,7 @@ describe("crawlPage", () => {
 
   test("calls onError when content isn't HTML", async () => {
     const mimeType = "application/pdf; charset=utf-8";
-    global.fetch = jest.fn(() => {
+    global.fetch = vi.fn(() => {
       return Promise.resolve({
         headers: { get: () => mimeType },
         status: 200,
@@ -172,7 +172,7 @@ describe("crawlPage", () => {
     });
     const baseUrl = "https://blog.boot.dev/";
     const pdfUrl = "https://blog.boot.dev/path";
-    const onError = jest.fn(() => {});
+    const onError = vi.fn(() => {});
 
     await crawlPage(baseUrl, pdfUrl, { onError });
 
@@ -181,9 +181,9 @@ describe("crawlPage", () => {
 
   test("catches network errors", async () => {
     const message = "Some network error";
-    global.fetch = jest.fn(() => Promise.reject(Error(message)));
+    global.fetch = vi.fn(() => Promise.reject(Error(message)));
     const url = "https://nosuchsite";
-    const onError = jest.fn(() => {});
+    const onError = vi.fn(() => {});
 
     await crawlPage(url, url, { onError });
 
