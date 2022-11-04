@@ -1,20 +1,20 @@
-#!/usr/bin/env node
+#!/usr/bin/env ts-node
 
-const path = require("node:path");
+import { basename } from "node:path";
 
-const { crawlPage } = require("./crawl");
+import { crawlPage, LinkCount } from "./crawl";
 
 function usage() {
-  const basename = path.basename(process.argv[1]);
-  console.error(`Usage: node ${basename} <base-url>`);
+  const base = basename(process.argv[1]);
+  console.error(`Usage: node ${base} <base-url>`);
   process.exit(1);
 }
 
-function onError(message) {
+function onError(message: string) {
   console.error(`Skipping ${message}`);
 }
 
-function printReport(pages) {
+function printReport(pages: LinkCount) {
   const results = Array.from(pages.entries()).sort((a, b) =>
     a[1] > b[1] ? 1 : -1
   );
@@ -30,7 +30,7 @@ async function main() {
   args.length === 1 || usage();
   const url = args[0];
 
-  pages = await crawlPage(url, url, { onError });
+  const pages: LinkCount = await crawlPage(url, url, { onError });
 
   printReport(pages);
 }

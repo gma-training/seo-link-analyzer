@@ -2,9 +2,9 @@
   "name": "seo-link-analyzer",
   "version": "1.0.0",
   "description": "Check a site for link building opportunities",
-  "main": "main.js",
+  "main": "main.ts",
   "scripts": {
-    "start": "node main.js",
+    "start": "ts-node main.ts",
     "test": "vitest run"
   },
   "keywords": [
@@ -15,11 +15,13 @@
   "author": "Graham Ashton",
   "license": "ISC",
   "devDependencies": {
+    "@types/jsdom": "^20.0.1",
     "prettier": "^2.7.1",
     "vite": "^3.2.2",
     "vitest": "^0.24.5"
   },
   "dependencies": {
-    "jsdom": "^20.0.2"
+    "jsdom": "^20.0.2",
+    "ts-node": "^10.9.1"
   }
 }
