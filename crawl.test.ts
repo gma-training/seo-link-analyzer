@@ -1,5 +1,5 @@
 import { describe, test, expect, vi } from "vitest";
-const { crawlPage, getURLsFromHTML, normalizeURL } = require("./crawl");
+import { crawlPage, getURLsFromHTML, normalizeURL } from "./crawl";
 
 const normalized = "wagslane.dev/path";
 
@@ -56,7 +56,7 @@ describe("getURLsFromHTML", () => {
   });
 });
 
-function htmlWithNoLinks() {
+function htmlWithNoLinks(): string {
   return `
 <html>
   <body>
@@ -65,7 +65,7 @@ function htmlWithNoLinks() {
 </html>`.trim();
 }
 
-function htmlLinkingTo(...urls) {
+function htmlLinkingTo(...urls: string[]): string {
   return `
 <html>
   <body>
@@ -74,13 +74,19 @@ function htmlLinkingTo(...urls) {
 </html>`.trim();
 }
 
-function fetchReturns(responses) {
+interface PageResponses {
+  [url: string]: string;
+}
+
+function respondWith(data: string, contentType: string): Promise<Response> {
+  const response = new Response(data, { status: 200 });
+  response.headers.set("Content-Type", contentType);
+  return Promise.resolve(response);
+}
+
+function fetchReturns(responses: PageResponses) {
   global.fetch = vi.fn((url) => {
-    return Promise.resolve({
-      headers: { get: () => `text/html; charset=utf-8` },
-      status: 200,
-      text: () => Promise.resolve(responses[url]),
-    });
+    return respondWith(responses[url.toString()], "text/html; charset=utf-8");
   });
 }
 
@@ -142,7 +148,9 @@ describe("crawlPage", () => {
   test("calls onError when page not found", async () => {
     const status = 404;
     const statusText = "Not Found";
-    global.fetch = vi.fn(() => Promise.resolve({ status, statusText }));
+    global.fetch = vi.fn(() =>
+      Promise.resolve(new Response("Not Found", { status, statusText }))
+    );
     const url = "https://blog.boot.dev/";
     const onError = vi.fn(() => {});
 
@@ -154,7 +162,9 @@ describe("crawlPage", () => {
   test("returns map of link counts on error", async () => {
     const status = 404;
     const statusText = "Not Found";
-    global.fetch = vi.fn(() => Promise.resolve({ status, statusText }));
+    global.fetch = vi.fn(() =>
+      Promise.resolve(new Response("Not Found", { status, statusText }))
+    );
 
     const pages = await crawlPage("https://boot.dev", "https://boot.dev");
 
@@ -163,13 +173,7 @@ describe("crawlPage", () => {
 
   test("calls onError when content isn't HTML", async () => {
     const mimeType = "application/pdf; charset=utf-8";
-    global.fetch = vi.fn(() => {
-      return Promise.resolve({
-        headers: { get: () => mimeType },
-        status: 200,
-        text: () => Promise.resolve("PDF data"),
-      });
-    });
+    global.fetch = vi.fn(() => respondWith("PDF data", mimeType));
     const baseUrl = "https://blog.boot.dev/";
     const pdfUrl = "https://blog.boot.dev/path";
     const onError = vi.fn(() => {});
