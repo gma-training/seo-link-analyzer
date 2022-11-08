@@ -16,6 +16,7 @@
   "author": "Graham Ashton",
   "license": "ISC",
   "devDependencies": {
+    "@types/jsdom": "^20.0.1",
     "prettier": "^2.7.1",
     "vite": "^3.2.2",
     "vitest": "^0.24.5"
