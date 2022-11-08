@@ -14,7 +14,7 @@ async function fetchPage(url: string): Promise<string> {
   const response = await fetch(url);
   if (response.status !== 200) {
     throw Error(`${response.status} ${response.statusText}`);
-  } else if (!response.headers.get("Content-Type").includes("text/html")) {
+  } else if (!response.headers.get("Content-Type")?.includes("text/html")) {
     throw Error(`${response.headers.get("Content-Type")}`);
   }
   return await response.text();
