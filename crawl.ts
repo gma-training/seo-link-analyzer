@@ -63,5 +63,7 @@ function absoluteUrl(url: string, baseUrl: string): string {
 export function getURLsFromHTML(htmlBody: string, baseURL: string): string[] {
   const dom = new JSDOM(htmlBody);
   const nodes = dom.window.document.querySelectorAll("a");
-  return Array.from(nodes, (element) => absoluteUrl(element.href, baseURL));
+  return Array.from(nodes, (element: HTMLLinkElement) =>
+    absoluteUrl(element.href, baseURL)
+  );
 }
