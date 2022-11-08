@@ -4,6 +4,7 @@
   "description": "Check a site for link building opportunities",
   "main": "main.js",
   "scripts": {
+    "build": "tsc",
     "start": "node main.js",
     "test": "vitest run"
   },
