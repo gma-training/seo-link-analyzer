@@ -51,7 +51,7 @@ Why I wrote it
 
 I've switched from working with Rails (a web framework written in Ruby) to using frameworks written in JavaScript (Rails is great, but I think there's some interesting work happening in the JavaScript community, and after over 12 years doing Rails I fancied a change). Demonstrating to clients that I could write good Ruby code was easy; there's [plenty of Ruby] on my GitHub profile.
 
-Unfortunately, most of my JavaScript code is in closed-source products that I can't share publicly, so JavaScript on my GitHub account was a little thin on the ground. I known for a while that it wouldn't hurt to add a few examples.
+Unfortunately, most of my JavaScript code is in closed-source products that I can't share publicly, so JavaScript on my GitHub account was a little thin on the ground. I've known for a while that it wouldn't hurt to add a few examples.
 
 Then I stumbled across [boot.dev], a training platform for backend developers. People often ask me for good learning resources, so I had a good look to see if it should go on my recommended list. And I have to say, I really like it.
 
